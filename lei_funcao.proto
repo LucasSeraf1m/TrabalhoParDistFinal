@@ -1,19 +1,20 @@
 syntax = "proto3";
 
-package todoPackage;
+package leiFuncaoPackage;
 
-service Todo {
-    rpc createTodo (TodoItem) returns (TodoItem);
-    rpc readTodosStream (VoidNoParam) returns (stream TodoItem);
+service LeiFuncao {
+    rpc encontralaLei (Coordenadas) returns (Coeficientes);
+    rpc readCoeficientesStream (VoidNoParam) returns (stream Coeficientes);
 }
 
 message VoidNoParam {}
 
-message TodoItem {
+message Coordenadas {
     int32 id = 1;
-    string text = 2;
+    string x = 2;
+    string y = 3;
 }
 
-message TodoItems {
-    repeated TodoItem items = 1;
+message Coeficientes {
+    repeated double coeficientes = 4;
 }

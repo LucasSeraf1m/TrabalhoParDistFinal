@@ -4,35 +4,38 @@ const protoLoader = require("@grpc/proto-loader");
 // Carrega o arquivo .proto
 const packageDef = protoLoader.loadSync("./lei_funcao.proto", {});
 const grpcObject = grpc.loadPackageDefinition(packageDef);
-const todoPackage = grpcObject.todoPackage;
+const leiFuncaoPackage = grpcObject.leiFuncaoPackage;
 
-const text = process.argv[2]; // Texto do todo passado como argumento
+const x = process.argv[2]; // Texto do todo passado como argumento (segundo argumento da command line)
+const y = process.argv[3];
 
-const client = new todoPackage.Todo(
+const client = new leiFuncaoPackage.LeiFuncao(
   "localhost:40000",
   grpc.credentials.createInsecure()
 );
 
-// Chama o método createTodo no servidor
-client.createTodo(
+// Chama o método encontralaLei no servidor
+client.encontralaLei(
   {
-    id: -1,
-    text: text,
+    x: x,
+    y: y
   },
   (err, response) => {
     if (err) {
       console.error("Error creating todo:", err);
-    } else {
-      console.log("Received from server:", JSON.stringify(response));
     }
   }
 );
 
-// Chama o método readTodosStream no servidor
-const call = client.readTodosStream();
+// Chama o método readCoeficientesStream no servidor
+const call = client.readCoeficientesStream();
+
+// Registra callback para quando o servidor envia um item de todo
 call.on("data", (item) => {
-  console.log("Received item from server:", JSON.stringify(item));
+  // console.log("Recebeu item do servidor:", JSON.stringify(item));
+  console.log("Função de ajuste da curva: y =", item.coeficientes[0], "* e ^", item.coeficientes[1]);
 });
 
-call.on("end", () => console.log("Server done!"));
+// Registra callback para quando o servidor termina de enviar todos os todos
+call.on("end", () => console.log("Servidor pronto!"));
 call.on("error", (e) => console.error("Streaming error:", e));
