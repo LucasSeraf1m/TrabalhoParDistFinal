@@ -11,8 +11,8 @@ const server = new grpc.Server();
 
 // Adiciona os serviços definidos no .proto ao servidor gRPC
 server.addService(leiFuncaoPackage.LeiFuncao.service, {
-  encontralaLei: encontralaLei,
-  readFuncaoAjusteStream: readFuncaoAjusteStream,
+  encontraFuncao: encontraFuncao,
+  readFuncaoStream: readFuncaoStream,
 });
 
 // Liga o servidor na porta 40000
@@ -25,30 +25,38 @@ server.bindAsync("0.0.0.0:40000", grpc.ServerCredentials.createInsecure(), (erro
   server;
 });
 
-const todos = []; // Array para armazenar os todos
+const funcoes = []; // Array para armazenar os todos
 
 // Implementa o método encontralaLei
-function encontralaLei(call, callback) {
+function encontraFuncao(call, callback) {
+  const tipoFuncao = call.request.tipo;
   const arrayX = call.request.x.split(',').map(Number);
   const arrayY = call.request.y.split(',').map(Number);
 
+  console.log(tipoFuncao);
+
   const pontos = arrayX.map((x, i) => [x, arrayY[i]]);
 
-  const resultado = regression.exponential(pontos);
+  console.log(pontos);
 
-  // console.log(resultado.equation); // Printa os coeficientes a e b
-  console.log(resultado.string);
+  let resultado;
+
+  if (tipoFuncao === 'log') {
+    resultado = regression.logarithmic(pontos);    
+  } else if (tipoFuncao === 'exp') {
+    resultado = regression.exponential(pontos);
+  } 
 
   const FuncaoAjuste = {
     funcaoAjuste: resultado.string
   };
 
-  todos.push(FuncaoAjuste); // Adiciona a nova FuncaoAjuste à lista
+  funcoes.push(FuncaoAjuste); // Adiciona a nova FuncaoAjuste à lista
   callback(null, FuncaoAjuste); // Retorna a FuncaoAjuste criada
 }
 
 // Implementa o método readTodosStream
-function readFuncaoAjusteStream(call) {
-  todos.forEach((t) => call.write(t)); // Envia cada FuncaoAjuste no fluxo
+function readFuncaoStream(call) {
+  funcoes.forEach((funcao) => call.write(funcao)); // Envia cada FuncaoAjuste no fluxo
   call.end(); // Finaliza o fluxo
 }
