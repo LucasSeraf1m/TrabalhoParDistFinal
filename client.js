@@ -29,29 +29,6 @@ client.encontraFuncao(
   }
 );
 
-// Chama o método readFuncaoStream no servidor
-const callFuncao = client.readFuncaoStream();
-
-let lastItemFuncao = null;
-
-// Registra callback para quando o servidor envia um item de todo
-callFuncao.on("data", (item) => {
-  lastItemFuncao = item;
-});
-
-callFuncao.on("end", () => {
-  if (lastItemFuncao) {
-    if (tipoFuncao === 'log') {
-      console.log("Função logarítmica de ajuste da curva:", lastItemFuncao.funcaoAjuste);
-    } else if (tipoFuncao === 'exp') {
-      console.log("Função exponencial de ajuste da curva:", lastItemFuncao.funcaoAjuste);
-    } 
-  }
-  // console.log("Servidor pronto!");
-});
-
-callFuncao.on("error", (e) => console.error("Streaming error:", e));
-
 const callTabela = client.readTabelaStream();
 
 let lastItemTabela = null;
@@ -68,7 +45,26 @@ callTabela.on("end", () => {
       console.log(lastItemTabela.tabela);
     } 
   }
-  console.log("Servidor pronto!");
 });
 
 callTabela.on("error", (e) => console.error("Erro na transmissão de tabela:", e));
+
+const callFuncao = client.readFuncaoStream();
+
+let lastItemFuncao = null;
+
+callFuncao.on("data", (item) => {
+  lastItemFuncao = item;
+});
+
+callFuncao.on("end", () => {
+  if (lastItemFuncao) {
+    if (tipoFuncao === 'log') {
+      console.log("Função logarítmica de ajuste da curva:", lastItemFuncao.funcaoAjuste);
+    } else if (tipoFuncao === 'exp') {
+      console.log("Função exponencial de ajuste da curva:", lastItemFuncao.funcaoAjuste);
+    } 
+  }
+});
+
+callFuncao.on("error", (e) => console.error("Streaming error:", e));
