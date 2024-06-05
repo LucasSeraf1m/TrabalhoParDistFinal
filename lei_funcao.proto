@@ -3,8 +3,8 @@ syntax = "proto3";
 package leiFuncaoPackage;
 
 service LeiFuncao {
-    rpc encontralaLei (Coordenadas) returns (Coeficientes);
-    rpc readCoeficientesStream (VoidNoParam) returns (stream Coeficientes);
+    rpc encontralaLei (Coordenadas) returns (FuncaoAjuste);
+    rpc readFuncaoAjusteStream (VoidNoParam) returns (stream FuncaoAjuste);
 }
 
 message VoidNoParam {}
@@ -17,4 +17,8 @@ message Coordenadas {
 
 message Coeficientes {
     repeated double coeficientes = 4;
+}
+
+message FuncaoAjuste {
+    string funcaoAjuste = 5;
 }

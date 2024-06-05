@@ -27,13 +27,14 @@ client.encontralaLei(
   }
 );
 
-// Chama o método readCoeficientesStream no servidor
-const call = client.readCoeficientesStream();
+// Chama o método readFuncaoAjusteStream no servidor
+const call = client.readFuncaoAjusteStream();
 
 // Registra callback para quando o servidor envia um item de todo
 call.on("data", (item) => {
   // console.log("Recebeu item do servidor:", JSON.stringify(item));
-  console.log("Função de ajuste da curva: y =", item.coeficientes[0], "* e ^", item.coeficientes[1]);
+  // console.log("Função de ajuste da curva: y =", item.coeficientes[0], "* e ^", item.coeficientes[1]);
+  console.log("Função de ajuste da curva: ", item.funcaoAjuste);
 });
 
 // Registra callback para quando o servidor termina de enviar todos os todos

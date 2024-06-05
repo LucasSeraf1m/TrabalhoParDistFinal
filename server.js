@@ -12,7 +12,7 @@ const server = new grpc.Server();
 // Adiciona os serviços definidos no .proto ao servidor gRPC
 server.addService(leiFuncaoPackage.LeiFuncao.service, {
   encontralaLei: encontralaLei,
-  readCoeficientesStream: readCoeficientesStream,
+  readFuncaoAjusteStream: readFuncaoAjusteStream,
 });
 
 // Liga o servidor na porta 40000
@@ -36,18 +36,19 @@ function encontralaLei(call, callback) {
 
   const resultado = regression.exponential(pontos);
 
-  console.log(resultado.equation);
+  // console.log(resultado.equation); // Printa os coeficientes a e b
+  console.log(resultado.string);
 
-  const Coeficientes = {
-    coeficientes: resultado.equation
+  const FuncaoAjuste = {
+    funcaoAjuste: resultado.string
   };
 
-  todos.push(Coeficientes); // Adiciona o novo todo à lista
-  callback(null, Coeficientes); // Retorna o todo criado
+  todos.push(FuncaoAjuste); // Adiciona a nova FuncaoAjuste à lista
+  callback(null, FuncaoAjuste); // Retorna a FuncaoAjuste criada
 }
 
 // Implementa o método readTodosStream
-function readCoeficientesStream(call) {
-  todos.forEach((t) => call.write(t)); // Envia cada todo no fluxo
+function readFuncaoAjusteStream(call) {
+  todos.forEach((t) => call.write(t)); // Envia cada FuncaoAjuste no fluxo
   call.end(); // Finaliza o fluxo
 }
