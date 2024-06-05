@@ -30,24 +30,45 @@ client.encontraFuncao(
 );
 
 // Chama o método readFuncaoStream no servidor
-const call = client.readFuncaoStream();
+const callFuncao = client.readFuncaoStream();
 
-let lastItem = null;
+let lastItemFuncao = null;
 
 // Registra callback para quando o servidor envia um item de todo
-call.on("data", (item) => {
-  lastItem = item;
+callFuncao.on("data", (item) => {
+  lastItemFuncao = item;
 });
 
-call.on("end", () => {
-  if (lastItem) {
+callFuncao.on("end", () => {
+  if (lastItemFuncao) {
     if (tipoFuncao === 'log') {
-      console.log("Função logarítmica de ajuste da curva:", lastItem.funcaoAjuste);
+      console.log("Função logarítmica de ajuste da curva:", lastItemFuncao.funcaoAjuste);
     } else if (tipoFuncao === 'exp') {
-      console.log("Função exponencial de ajuste da curva:", lastItem.funcaoAjuste);
+      console.log("Função exponencial de ajuste da curva:", lastItemFuncao.funcaoAjuste);
+    } 
+  }
+  // console.log("Servidor pronto!");
+});
+
+callFuncao.on("error", (e) => console.error("Streaming error:", e));
+
+const callTabela = client.readTabelaStream();
+
+let lastItemTabela = null;
+
+callTabela.on("data", (item) => {
+  lastItemTabela = item;
+});
+
+callTabela.on("end", () => {
+  if (lastItemTabela) {
+    if (tipoFuncao === 'log') {
+      console.log(lastItemTabela.tabela);
+    } else if (tipoFuncao === 'exp') {
+      console.log(lastItemTabela.tabela);
     } 
   }
   console.log("Servidor pronto!");
 });
 
-call.on("error", (e) => console.error("Streaming error:", e));
+callTabela.on("error", (e) => console.error("Erro na transmissão de tabela:", e));

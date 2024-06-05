@@ -5,6 +5,7 @@ package leiFuncaoPackage;
 service LeiFuncao {
     rpc encontraFuncao (Coordenadas) returns (FuncaoAjuste);
     rpc readFuncaoStream (VoidNoParam) returns (stream FuncaoAjuste);
+    rpc readTabelaStream (VoidNoParam) returns (stream Tabela);
 }
 
 message VoidNoParam {}
@@ -22,4 +23,8 @@ message Coeficientes {
 
 message FuncaoAjuste {
     string funcaoAjuste = 5;
+}
+
+message Tabela {
+    string tabela = 7;
 }
