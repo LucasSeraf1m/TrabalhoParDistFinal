@@ -1,6 +1,8 @@
 const grpc = require("@grpc/grpc-js");
 const protoLoader = require("@grpc/proto-loader");
 const regression = require("regression");
+const express = require("express");
+const path = require("path");
 
 // Carrega o arquivo .proto
 const packageDef = protoLoader.loadSync("./lei_funcao.proto", {});
@@ -8,6 +10,7 @@ const grpcObject = grpc.loadPackageDefinition(packageDef);
 const leiFuncaoPackage = grpcObject.leiFuncaoPackage;
 
 const server = new grpc.Server();
+const app = express();
 
 // Adiciona os serviços definidos no .proto ao servidor gRPC
 server.addService(leiFuncaoPackage.LeiFuncao.service, {
@@ -29,6 +32,38 @@ server.bindAsync(
     server;
   }
 );
+
+app.use(express.static(path.join(__dirname, "public")));
+
+app.get("/", (res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});
+
+app.get("/data", (req, res) => {
+  const tipoFuncao = req.query.tipo;
+  const x = req.query.x;
+  const y = req.query.y;
+
+  client.encontraFuncao({ tipo: tipoFuncao, x: x, y: y }, (err, response) => {
+    if (err) {
+      res.status(500).send("Error retrieving data");
+      return;
+    }
+    const arrayX = x.split(",").map(Number);
+    const arrayY = y.split(",").map(Number);
+    const pontos = arrayX.map((x, i) => [x, arrayY[i]]);
+
+    res.json({
+      funcaoAjuste: response.funcaoAjuste,
+      pontos: pontos,
+    });
+  });
+});
+
+const PORT = 3000;
+app.listen(PORT, () => {
+  console.log(`Express Server running at http://localhost:${PORT}`);
+});
 
 const funcoes = [];
 const tabelas = [];
@@ -117,7 +152,7 @@ function gerarTabelaLog(dados) {
   return tabela;
 }
 
-function encontraFuncao(call, callback) {
+function encontraFuncao(call) {
   const tipoFuncao = call.request.tipo;
   const arrayX = call.request.x.split(",").map(Number);
   const arrayY = call.request.y.split(",").map(Number);
@@ -146,9 +181,14 @@ function encontraFuncao(call, callback) {
     tabela: tabela,
   };
 
+  return FuncaoAjuste, Tabela;
+}
+
+function alimentaVetores() {
+  
+
   funcoes.push(FuncaoAjuste);
   tabelas.push(Tabela);
-  callback(null, FuncaoAjuste); // Retorna a FuncaoAjuste criada
 }
 
 function readFuncaoStream(callFuncao) {

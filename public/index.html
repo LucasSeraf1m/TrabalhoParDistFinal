@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Graph</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  </head>
+  <body>
+    <div id="plot"></div>
+    <script>
+      async function fetchData() {
+        const response = await fetch("/data");
+        const data = await response.json();
+
+        const x = data.pontos.map((p) => p[0]);
+        const y = data.pontos.map((p) => p[1]);
+        const funcaoAjuste = data.funcaoAjuste;
+
+        console.log("Regression function:", funcaoAjuste); // Log the regression function
+
+        const trace1 = {
+          x: x,
+          y: y,
+          mode: "markers",
+          name: "Data Points",
+        };
+
+        let yFit;
+        if (funcaoAjuste.includes("ln")) {
+          const match = funcaoAjuste.match(
+            /y = ([\d.e-]+) \+ ([\d.e-]+) ln\(x\)/
+          );
+          if (match) {
+            const intercept = parseFloat(match[1]);
+            const coef = parseFloat(match[2]);
+            yFit = x.map((xi) => coef * Math.log(xi) + intercept);
+          } else {
+            console.error(
+              "Failed to parse logarithmic regression function:",
+              funcaoAjuste
+            );
+            yFit = [];
+          }
+        } else if (funcaoAjuste.includes("e^")) {
+          const match = funcaoAjuste.match(
+            /y = ([\d.e-]+) \* e\^(-?[\d.e-]+)x/
+          );
+          if (match) {
+            const base = parseFloat(match[1]);
+            const exponent = parseFloat(match[2]);
+            yFit = x.map((xi) => base * Math.exp(exponent * xi));
+          } else {
+            console.error(
+              "Failed to parse exponential regression function:",
+              funcaoAjuste
+            );
+            yFit = [];
+          }
+        } else {
+          console.error("Unknown regression function format:", funcaoAjuste);
+          yFit = [];
+        }
+
+        const trace2 = {
+          x: x,
+          y: yFit,
+          mode: "lines",
+          name: "Regression Line",
+        };
+
+        const layout = {
+          title: "Regression Plot",
+          xaxis: { title: "X" },
+          yaxis: { title: "Y" },
+        };
+
+        Plotly.newPlot("plot", [trace1, trace2], layout);
+      }
+
+      fetchData();
+    </script>
+  </body>
+</html>
