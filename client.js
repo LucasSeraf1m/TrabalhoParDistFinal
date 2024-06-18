@@ -7,7 +7,7 @@ const grpcObject = grpc.loadPackageDefinition(packageDef);
 const leiFuncaoPackage = grpcObject.leiFuncaoPackage;
 
 const tipoFuncao = process.argv[2];
-const x = process.argv[3]; // Texto do todo passado como argumento (segundo argumento da command line)
+const x = process.argv[3];
 const y = process.argv[4];
 
 const client = new leiFuncaoPackage.LeiFuncao(
@@ -15,22 +15,23 @@ const client = new leiFuncaoPackage.LeiFuncao(
   grpc.credentials.createInsecure()
 );
 
-// Chama o método encontralaLei no servidor
 client.encontraFuncao(
   {
     tipo: tipoFuncao,
     x: x,
-    y: y
+    y: y,
   },
   (err, response) => {
     if (err) {
       console.error("Error creating todo:", err);
+    } else {
+      console.log(response.funcaoAjuste);
+      console.log(`Graph available at: ${response.linkToGraph}`);
     }
   }
 );
 
 const callTabela = client.readTabelaStream();
-
 let lastItemTabela = null;
 
 callTabela.on("data", (item) => {
@@ -39,18 +40,15 @@ callTabela.on("data", (item) => {
 
 callTabela.on("end", () => {
   if (lastItemTabela) {
-    if (tipoFuncao === 'log') {
-      console.log(lastItemTabela.tabela);
-    } else if (tipoFuncao === 'exp') {
-      console.log(lastItemTabela.tabela);
-    } 
+    console.log(lastItemTabela.tabela);
   }
 });
 
-callTabela.on("error", (e) => console.error("Erro na transmissão de tabela:", e));
+callTabela.on("error", (e) =>
+  console.error("Erro na transmissão de tabela:", e)
+);
 
 const callFuncao = client.readFuncaoStream();
-
 let lastItemFuncao = null;
 
 callFuncao.on("data", (item) => {
@@ -59,11 +57,7 @@ callFuncao.on("data", (item) => {
 
 callFuncao.on("end", () => {
   if (lastItemFuncao) {
-    if (tipoFuncao === 'log') {
-      console.log("Função logarítmica de ajuste da curva:", lastItemFuncao.funcaoAjuste);
-    } else if (tipoFuncao === 'exp') {
-      console.log("Função exponencial de ajuste da curva:", lastItemFuncao.funcaoAjuste);
-    } 
+    console.log(lastItemFuncao.funcaoAjuste);
   }
 });
 

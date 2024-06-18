@@ -1,6 +1,9 @@
 const grpc = require("@grpc/grpc-js");
 const protoLoader = require("@grpc/proto-loader");
 const regression = require("regression");
+const express = require("express");
+const fs = require("fs");
+const path = require("path");
 
 // Carrega o arquivo .proto
 const packageDef = protoLoader.loadSync("./lei_funcao.proto", {});
@@ -26,9 +29,16 @@ server.bindAsync(
       return;
     }
     console.log("Server running at http://0.0.0.0:" + port);
-    server;
+    server.start();
   }
 );
+
+// Setup the express server for static files
+const app = express();
+app.use(express.static("public"));
+app.listen(3000, () => {
+  console.log("Static file server running at http://localhost:3000");
+});
 
 const funcoes = [];
 const tabelas = [];
@@ -45,11 +55,9 @@ function processarPontosExp(pontos) {
 }
 
 function gerarTabelaExp(dados) {
-  // Adiciona o cabeçalho da tabela
   let tabela = "  x |  ln(y) | x*ln(y) | x^2 \n";
   tabela += "----|--------|---------|-------\n";
 
-  // Adiciona as linhas de dados
   dados.forEach((linha) => {
     tabela += `${linha.x.toString().padStart(3)} | ${linha.lnY
       .toFixed(3)
@@ -58,13 +66,11 @@ function gerarTabelaExp(dados) {
       .padStart(4)}\n`;
   });
 
-  // Calcula os somatórios
   const somaX = dados.reduce((acc, curr) => acc + curr.x, 0);
   const somaLnY = dados.reduce((acc, curr) => acc + curr.lnY, 0);
   const somaXLnY = dados.reduce((acc, curr) => acc + curr.xLnY, 0);
   const somaX2 = dados.reduce((acc, curr) => acc + curr.x2, 0);
 
-  // Adiciona os somatórios
   tabela += "----|--------|---------|-------\n";
   tabela += `${somaX.toString().padStart(3)} | ${somaLnY
     .toFixed(3)
@@ -87,11 +93,9 @@ function processarPontosLog(pontos) {
 }
 
 function gerarTabelaLog(dados) {
-  // Adiciona o cabeçalho da tabela
   let tabela = "  ln(x) |    y   | y*ln(x) | ln(x)^2 \n";
   tabela += "--------|--------|---------|----------\n";
 
-  // Adiciona as linhas de dados
   dados.forEach((linha) => {
     tabela += `${linha.lnX.toFixed(3).padStart(7)} | ${linha.y
       .toFixed(3)
@@ -100,13 +104,11 @@ function gerarTabelaLog(dados) {
       .padStart(7)}\n`;
   });
 
-  // Calcula os somatórios
   const somaLnX = dados.reduce((acc, curr) => acc + curr.lnX, 0);
   const somaY = dados.reduce((acc, curr) => acc + curr.y, 0);
   const somaYlnX = dados.reduce((acc, curr) => acc + curr.yLnX, 0);
   const somaLnX2 = dados.reduce((acc, curr) => acc + curr.lnX2, 0);
 
-  // Adiciona os somatórios
   tabela += "--------|--------|---------|----------\n";
   tabela += `${somaLnX.toFixed(3).padStart(7)} | ${somaY
     .toFixed(3)
@@ -148,7 +150,23 @@ function encontraFuncao(call, callback) {
 
   funcoes.push(FuncaoAjuste);
   tabelas.push(Tabela);
-  callback(null, FuncaoAjuste); // Retorna a FuncaoAjuste criada
+
+  // Save graph data to a JSON file
+  const graphData = {
+    tipoFuncao,
+    pontos,
+    resultado: {
+      string: resultado.string,
+      coefficients: resultado.equation, // Ensure coefficients are properly set
+    },
+  };
+
+  const graphFilePath = path.join(__dirname, "public", "graphData.json");
+  fs.writeFileSync(graphFilePath, JSON.stringify(graphData));
+
+  const linkToGraph = "http://localhost:3000/graph.html";
+
+  callback(null, { ...FuncaoAjuste, linkToGraph }); // Retorna a FuncaoAjuste e linkToGraph
 }
 
 function readFuncaoStream(callFuncao) {

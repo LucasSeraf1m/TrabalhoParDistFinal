@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Graph</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
+  <body>
+    <canvas id="myChart" width="400" height="200"></canvas>
+    <script>
+      fetch("graphData.json")
+        .then((response) => response.json())
+        .then((data) => {
+          const ctx = document.getElementById("myChart").getContext("2d");
+
+          const pontos = data.pontos;
+          const tipoFuncao = data.tipoFuncao;
+          const coefficients = data.resultado.coefficients;
+
+          const pontosX = pontos.map((p) => p[0]);
+          const pontosY = pontos.map((p) => p[1]);
+
+          const fittedY = pontosX.map((x) => {
+            if (tipoFuncao === "exp") {
+              return coefficients[0] * Math.exp(coefficients[1] * x);
+            } else if (tipoFuncao === "log") {
+              return coefficients[0] + coefficients[1] * Math.log(x);
+            }
+          });
+
+          new Chart(ctx, {
+            type: "scatter",
+            data: {
+              datasets: [
+                {
+                  label: "Original Data",
+                  data: pontos.map((p) => ({ x: p[0], y: p[1] })),
+                  backgroundColor: "rgba(255, 99, 132, 1)",
+                  borderColor: "rgba(255, 99, 132, 1)",
+                  showLine: false,
+                },
+                {
+                  label: "Fitted Curve",
+                  data: pontosX.map((x, index) => ({ x, y: fittedY[index] })),
+                  backgroundColor: "rgba(54, 162, 235, 1)",
+                  borderColor: "rgba(54, 162, 235, 1)",
+                  showLine: true,
+                  fill: false,
+                },
+              ],
+            },
+            options: {
+              scales: {
+                x: {
+                  type: "linear",
+                  position: "bottom",
+                },
+              },
+            },
+          });
+        });
+    </script>
+  </body>
+</html>

@@ -23,6 +23,7 @@ message Coeficientes {
 
 message FuncaoAjuste {
     string funcaoAjuste = 5;
+    string linkToGraph = 8;  // Add this line
 }
 
 message Tabela {

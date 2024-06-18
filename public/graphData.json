@@ -1,0 +1,1 @@
+{"tipoFuncao":"log","pontos":[[2,0.7],[3,1.1],[9.5,2.2],[31,3.4]],"resultado":{"string":"y = 0.02 + 0.98 ln(x)","coefficients":[0.02,0.98]}}
